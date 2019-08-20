@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
-
 from intervaltree import Interval, IntervalTree
+import sys
 
 
 def cdf_geom(x, shape):
@@ -74,9 +74,8 @@ class EmpiricalDistribution:
 
     def __init__(self, random_state, length, bins, cdf, **coeffs):
         """
-        Initialise an empirical distribution using the supplied CDF and for() the range [0..length].
-        The CDF is normalized by 1 / max[CDF(x)].
-
+        Initialise an empirical distribution using the supplied CDF and for() the range [0..length]. The CDF is normalized
+        by 1 / max[CDF(x)].
         :param random_state: random state from which to draw numbers. If None, then this will be initialized at
         :param shape: distribution shape parameter
         :param length: distribution will be defined over 0..length
@@ -100,7 +99,7 @@ class EmpiricalDistribution:
         :param x: position at which to evaulate
         :return: CDF value at x
         """
-        assert x <= self.length, 'out of bounds {} > {}'.format(x, self.length)
+        assert x <= self.length, 'out of bounds {0} > {1}'.format(x, self.length)
         return self.cdf(x, self.length, **self.coeffs)
 
     def __add__(self, other):
@@ -157,7 +156,6 @@ def generate_random_cids(random_state, chr_length, chr_prob=0.5, chr_bins=1000, 
     :param num_cid: number of CIDs to generate for chromosome
     :param cid_bins: number of sampling bins used in empirical distribution of CID.
     :param cid_shape: geometric distribution shape parameter for CIDs
-    :param cdf_alpha: mixture coefficient
     :param merge_overlaps: if true, overlapping CID are merged. This can result in CID exceeding max_cid_len.
     :return: an intervaltree representing range of effect of each CID, as well as the full chromosome.
     """
@@ -228,8 +226,17 @@ def _random_nested_intervals(random_state, result, inv, min_len, max_len, min_nu
             _random_nested_intervals(random_state, result, ii, min_len, max_len,
                                      min_num, max_num, max_depth, depth + 1)
 
+def nonrandom_nested_intervals(subseqs, depths):
+    result = []
+    for subseq, depth in zip(subseqs, depths):
+        subseq = np.array(subseq)
+        # adjacent elements become the next level of intervals
+        subinvs = [Interval(pi[0], pi[1], data={'depth': depth+1}) for pi in zip(subseq[:-1:1], subseq[1::1])]
+        # keep this level
+        result.append(subinvs)
+    return result
 
-def generate_nested_cids(random_state, chr_length, chr_prob, chr_bins, chr_shape, cid_bins, cid_shape,
+def generate_nested_cids(random_state, chr_length, chr_prob, chr_bins, chr_shape, cid_bins, cid_shape, depths=None, subseqs=None,
                          cdf_alpha=0.333, min_len=0.05, max_len=0.2, min_num=5, max_num=5, recur_depth=2):
     """cdf
     Generate a set of nested CID intervals for the given genome size. This method better approximates the
@@ -254,9 +261,10 @@ def generate_nested_cids(random_state, chr_length, chr_prob, chr_bins, chr_shape
     """
 
     # recursively create a list of nested intervals
-    cid_list = []
-    top_inv = Interval(0, chr_length)
-    _random_nested_intervals(random_state, cid_list, top_inv, min_len, max_len, min_num, max_num, recur_depth)
+    if depths is None or subseqs is None:
+        _random_nested_intervals(random_state, cid_list, top_inv, min_len, max_len, min_num, max_num, recur_depth)
+    else:
+        cid_list = nonrandom_nested_intervals(subseqs, depths)
 
     # flatten returned list of intervals
     cid_list = [inv for level in cid_list for inv in level]
