@@ -242,7 +242,7 @@ class SequencingStrategy:
                  anti_rate=0.25, spurious_rate=0.02, trans_rate=0.1,
                  efficiency=0.02,
                  ins_rate=9.e-5, del_rate=1.1e-4,
-                 create_cids=True, simple_reads=True, linear=False, convert_symbols=False):
+                 create_cids=True, simple_reads=True, linear=False, convert_symbols=False, depths=None, subseqs=None):
         """
         Initialise a SequencingStrategy.
 
@@ -269,6 +269,8 @@ class SequencingStrategy:
         :param simple_reads: True: sequencing reads do not simulate error (faster), False: full simulation of sequencing
         :param linear: treat replicons as linear
         :param convert_symbols: if true, unsupported (by Art) symbols in the input sequences are converted to N
+        :param depths: depths of custom CIDs
+        :param subseqs: subsequences of custom CIDs
         """
         self.seed = seed
         self.prof_filename = prof_filename
@@ -304,7 +306,7 @@ class SequencingStrategy:
         # initialise the community for the reference data
         self.community = Community(seq_index, self.profile, self.enzyme, self.random_state, anti_rate=anti_rate,
                                    spurious_rate=spurious_rate, trans_rate=trans_rate,
-                                   create_cids=create_cids, linear=linear)
+                                   create_cids=create_cids, linear=linear, depths=depths, subseqs=subseqs)
 
         # preparate the read simulator for output
         self.read_generator = ReadGenerator(method, self.enzyme, seed, self.random_state,
