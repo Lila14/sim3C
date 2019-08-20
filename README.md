@@ -21,12 +21,12 @@ To install and run sim3C you will require Python 2.7 and LLVM. We recommend that
 The sim3C executable can be installed for an individual user directly from Github using Pip as follows.
 
 ```bash
-pip install --user git+https://github.com/cerebis/sim3C
+pip install --user git+https://github.com/Lila14/sim3C
 ```
 
 Python dependencies will automatically be satisfied during installation. 
 
-If you encounter problems please visit and log an issue at the [project site on Github](https://github.com/cerebis/sim3C/issues). 
+If you encounter problems please visit and log an issue at the [project site on Github](https://github.com/Lila14/sim3C/issues). 
 
 ## Usage
 
