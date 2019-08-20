@@ -17,17 +17,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import logging
+import numpy as np
+import os
+import scipy.stats as st
 import string
 import types
-import os
 
 from numba import jit, int64
-import numpy as np
-import scipy.stats as st
 from Bio.Alphabet import IUPAC
 from Bio.File import _IndexedSeqFileDict
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
+
+from .exceptions import Sim3CException
+
+
+logger = logging.getLogger(__name__)
+
 
 """
 The following module was transcribed and adapted from the original project's C++ code:
@@ -38,7 +45,7 @@ License: GPL v3
 """
 
 
-class ArtException(Exception):
+class ArtException(Sim3CException):
     """Module base exception class"""
     def __init__(self, message):
         super(ArtException, self).__init__(message)
@@ -107,7 +114,7 @@ def get_profile(name):
     :param name: the name of the profile.
     :return: absolute (full) path
     """
-    assert name in ILLUMINA_PROFILES, 'Unknown profile name. Try one of: {0}'.format(
+    assert name in ILLUMINA_PROFILES, 'Unknown profile name. Try one of: {}'.format(
         ', '.join(ILLUMINA_PROFILES.keys()))
 
     return map(lambda pi: os.path.join(MODULE_PATH, pi), ILLUMINA_PROFILES[name])
@@ -392,7 +399,7 @@ class EmpDist:
 
             if read_pos != n:
                 if read_pos != 0:
-                    raise IOError('Error: invalid format in profile at [{0}]'.format(line))
+                    raise IOError('Error: invalid format in profile at [{}]'.format(line))
                 n = 0
 
             line = hndl.readline().strip()
@@ -400,10 +407,10 @@ class EmpDist:
             symb, read_pos, counts = tok[0], int(tok[1]), np.array(tok[2:], dtype=int)
 
             if read_pos != n:
-                raise IOError('Error: invalid format in profile at [{0}]'.format(line))
+                raise IOError('Error: invalid format in profile at [{}]'.format(line))
 
             if len(values) != len(counts):
-                raise IOError('Error: invalid format in profile at [{0}]'.format(line))
+                raise IOError('Error: invalid format in profile at [{}]'.format(line))
 
             dist = np.array([(cc, values[i]) for i, cc in
                              enumerate(np.ceil(counts * EmpDist.MAX_DIST_NUMBER/counts[-1]).astype(int))])
@@ -416,7 +423,7 @@ class EmpDist:
                     else:
                         self.qual_dist_second[symb].append(dist)
                 except Exception:
-                    raise IOError('Error: unexpected base symbol [{0}] linked to distribution'.format(symb))
+                    raise IOError('Error: unexpected base symbol [{}] linked to distribution'.format(symb))
 
         return n != 0
 
@@ -448,7 +455,7 @@ class SeqRead:
             return SeqRead(rlen, self.ins_rate, self.del_rate, self.max_num, plus_strand=plus_strand)
 
     def __str__(self):
-        return 'from {0}...{1}bp created {2}'.format(self.seq_ref[0:10], self.seq_ref.shape[0], self.seq_read)
+        return 'from {}...{}bp created {}'.format(self.seq_ref[0:10], self.seq_ref.shape[0], self.seq_read)
 
     def read_record(self, seq_id, desc=''):
         """
@@ -471,7 +478,7 @@ class SeqRead:
         Create a string description for this read, suitable for inclusion if output
         :return: a string description
         """
-        return '{0}{1}'.format(self.bpos, 'F' if self.is_plus_strand else 'R')
+        return '{}{}'.format(self.bpos, 'F' if self.is_plus_strand else 'R')
 
     @staticmethod
     def read_id(ref_id, n):
@@ -482,7 +489,7 @@ class SeqRead:
         :param n: an index for the read
         :return: a string id for this read
         """
-        return '{0}-{1}'.format(ref_id, n)
+        return '{}-{}'.format(ref_id, n)
 
     def _read_str(self):
         """
@@ -500,7 +507,7 @@ class SeqRead:
     #     assert self.quals, 'Quality scores have not been initialized for the read'
     #     assert len(self.quals) == self.length(), \
     #         "The number of bases is not equal to the number of quality scores!\n" \
-    #         "qual size: {0},  read len: {1}".format(len(self.quals), self.length())
+    #         "qual size: {},  read len: {}".format(len(self.quals), self.length())
     #
     #     for i in xrange(len(self.quals)):
     #         # if we encounter an undefined base, its quality score goes to 1.
@@ -684,7 +691,7 @@ class Art:
             self.ref_seq_cmp = list(Art.revcomp(ref_seq))
             self.valid_region = len(ref_seq) - read_len
         else:
-            print 'Warning: no reference supplied, calls will have to supply a template'
+            logger.warning('No reference supplied, calls will have to supply a template')
             self.ref_seq = None
             self.ref_seq_cmp = None
 
@@ -901,8 +908,8 @@ if __name__ == '__main__':
     if args.xfold and args.num_reads:
         raise RuntimeError('xfold and num-reads are mutually exclusive options')
 
-    with open('{0}.r1.fq'.format(args.outbase), 'w', buffering=262144) as r1_h, \
-            open('{0}.r2.fq'.format(args.outbase), 'w', buffering=262144) as r2_h:
+    with open('{}.r1.fq'.format(args.outbase), 'w', buffering=262144) as r1_h, \
+            open('{}.r2.fq'.format(args.outbase), 'w', buffering=262144) as r2_h:
 
         for input_record in SeqIO.parse(args.fasta, 'fasta'):
 
@@ -921,7 +928,7 @@ if __name__ == '__main__':
             else:
                 num_seq = args.num_reads
 
-            print 'Generating {0} reads for {1}'.format(num_seq, input_record.id)
+            logger.info('Generating {} reads for {}'.format(num_seq, input_record.id))
 
             print_rate = int(num_seq*100./10)
 
@@ -945,5 +952,5 @@ if __name__ == '__main__':
                 SeqIO.write(pair['rev'].read_record(SeqRead.read_id(input_record.id, n)), r2_h, 'fastq')
 
                 if ((n+1)*100) % print_rate == 0:
-                    print '\tWrote {0} pairs'.format(n+1)
+                    logger.info('Wrote {} pairs'.format(n+1))
             break
