@@ -266,6 +266,8 @@ def generate_nested_cids(random_state, chr_length, chr_prob, chr_bins, chr_shape
     if depths is None or subseqs is None:
         _random_nested_intervals(random_state, cid_list, top_inv, min_len, max_len, min_num, max_num, recur_depth)
     else:
+        print "subseqs: {}".format(subseqs)
+        print "depths: {}".format(depths)
         cid_list = nonrandom_nested_intervals(np.loadtxt(subseqs), np.loadtxt(depths))
 
     # flatten returned list of intervals
