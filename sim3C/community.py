@@ -41,7 +41,7 @@ class Replicon:
     CID_MAX = 6
     CID_DEPTH = 2
 
-    def __init__(self, name, cell, cn, seq, enzyme, anti_rate, random_state, create_cids=True, linear=False):
+    def __init__(self, name, cell, cn, seq, enzyme, anti_rate, random_state, create_cids=True, linear=False, depths=None, subseqs=None):
         """
         The definition of a replicon (chromosome, plasmid, etc).
         :param name: a unique name for this replicon
@@ -91,6 +91,7 @@ class Replicon:
             self.cid_blocks = cids_to_blocks(
                 generate_nested_cids(self.random_state, self.length, Replicon.BACKBONE_PROB,
                                      Replicon.GLOBAL_EMPDIST_BINS, Replicon.GLOBAL_SHAPE_FACTOR,
+                                     depths, subseqs,
                                      Replicon.CID_EMPDIST_BINS, Replicon.CID_SHAPE_FACTOR,
                                      cdf_alpha=Replicon.CDF_ALPHA,
                                      min_num=Replicon.CID_MIN, max_num=Replicon.CID_MAX,
