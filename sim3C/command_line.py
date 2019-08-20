@@ -122,6 +122,8 @@ def main():
                         default='EmpMiSeq250', choices=ILLUMINA_PROFILES.keys())
     parser.add_argument('--ins-rate', type=float, default=9.e-5, help='Insert rate [9e-5]')
     parser.add_argument('--del-rate', type=float, default=1.1e-4, help='Deletion rate [1.1e-4]')
+    parser.add_argument('--depths', help='Depths of custom CIDs')
+    parser.add_argument('--subseqs', help='Subsequences of custom CIDs')
 
     parser.add_argument(dest='genome_seq', metavar='FASTA',
                         help='Genome sequences for the community')
@@ -202,7 +204,7 @@ def main():
                     'anti_rate', 'spurious_rate', 'trans_rate',
                     'efficiency',
                     'ins_rate', 'del_rate',
-                    'create_cids', 'simple_reads', 'linear', 'convert_symbols']
+                    'create_cids', 'simple_reads', 'linear', 'convert_symbols', 'depths', 'subseqs']
 
         # extract these parameters from the parsed arguments
         kw_args = {k: v for k, v in vars(args).items() if k in kw_names}
