@@ -473,7 +473,7 @@ class Community:
     """
 
     def __init__(self, seq_index, profile, enzyme, random_state, anti_rate=0.2, spurious_rate=0.02,
-                 trans_rate=0.1, create_cids=True, linear=False):
+                 trans_rate=0.1, create_cids=True, linear=False, depths=None, subseqs=None):
         """
         Initialise a community.
 
@@ -505,7 +505,7 @@ class Community:
             rseq = seq_index[ri.name].upper()
             # community-wide replicon registry
             self._register_replicon(Replicon(ri.name, cell, ri.copy_number, rseq, enzyme, anti_rate,
-                                             random_state, create_cids, linear))
+                                             random_state, create_cids, linear, depths, subseqs))
 
         # now we're finished reading replicons, initialise the probs for each cell
         for cell in self.cell_registry.values():
