@@ -91,8 +91,8 @@ class Replicon:
             self.cid_blocks = cids_to_blocks(
                 generate_nested_cids(self.random_state, self.length, Replicon.BACKBONE_PROB,
                                      Replicon.GLOBAL_EMPDIST_BINS, Replicon.GLOBAL_SHAPE_FACTOR,
-                                     depths, subseqs,
                                      Replicon.CID_EMPDIST_BINS, Replicon.CID_SHAPE_FACTOR,
+                                     depths, subseqs,
                                      cdf_alpha=Replicon.CDF_ALPHA,
                                      min_num=Replicon.CID_MIN, max_num=Replicon.CID_MAX,
                                      recur_depth=Replicon.CID_DEPTH))
