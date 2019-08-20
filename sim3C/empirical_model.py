@@ -230,8 +230,10 @@ def _random_nested_intervals(random_state, result, inv, min_len, max_len, min_nu
 
 def nonrandom_nested_intervals(subseqs, depths):
     result = []
-    print subseqs
-    print depths
+    logger.info("subseqs")
+    logger.info(subseqs)
+    logger.info("depths")
+    logger.info(depths)
     for subseq, depth in zip(subseqs, depths):
         subseq = np.array(subseq)
         # adjacent elements become the next level of intervals
