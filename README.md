@@ -1,6 +1,6 @@
 # sim3C
 
-Read-pair simulation of 3C-based sequencing methodologies (HiC, Meta3C, DNase-HiC)
+Read-pair simulation of 3C-based sequencing methodologies (HiC, Meta3C, DNase-HiC) with custom chromosome interaction domains (CIDs)
 
 ## Recent Updates
 
@@ -101,6 +101,19 @@ The simplest runtime scenario would be a strictly mono-chromosomal community, wh
 Simulate 500k 150bp read-pairs using traditional HiC, NlaIII as an enzyme and uniformly random abundance across all sequences.
 ```bash
 > sim3C --dist uniform -n 500000 -l 150 -e NlaIII -m hic myref.fasta sim.fastq
+```
+
+If you want to define custom CID boundaries (instead of random), you must create a depths file and a boundaries file. Each line of a file corresponds to one depth level for CIDs. 
+
+For example your depths file could be as simple as
+
+>0
+
+And your boundaries file could be
+>0       20000000        40000000        45000000
+
+```bash
+> sim3C --linear --dist uniform -n 500000 -l 150 -e NlaIII -m hic --create-cids --depths mydepths.txt --subseqs myboundaries.txt myref.fasta sim.fastq
 ```
 
 If a community profile has been prepared and we wish to simulate Meta3C.
